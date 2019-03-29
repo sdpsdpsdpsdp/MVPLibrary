@@ -4,6 +4,7 @@ import com.laisontech.mvp.net.OnConnectResultListener;
 
 import java.io.File;
 import java.util.LinkedHashMap;
+import java.util.Random;
 
 /**
  * Created by SDP on 2018/4/13.
@@ -14,8 +15,10 @@ public class OkHttpConnect {
     private int mDefaultDuration = 15 * 1000;//时长10s
     private int mDefaultMaxConnectTimes = 3;//最大的重连次数
     private static OkHttpConnect mInstance;
+    private Random mRandom;
 
     private OkHttpConnect() {
+        mRandom = new Random();
     }
 
     public static OkHttpConnect getInstance() {
@@ -57,31 +60,51 @@ public class OkHttpConnect {
         return buildConnectBuilder(mDefaultDuration, mDefaultMaxConnectTimes);
     }
 
+    private Object buildTag(String method) {
+        return method + "_" + System.currentTimeMillis() + "_" + mRandom.nextInt(Integer.MAX_VALUE);
+    }
+
     /**
      * get String请求
      */
-    public void buildGetString(String url, String tag, OnConnectResultListener listener) {
+    public void buildGetString(String url, OnConnectResultListener listener) {
+        buildGetString(url, buildTag("GET"), listener);
+    }
+
+    public void buildGetString(String url, Object tag, OnConnectResultListener listener) {
         buildConnectBuilder().build().buildGetString(url, tag, listener);
     }
 
     /**
      * post String请求
      */
-    public void buildPostString(String url, String tag, LinkedHashMap<String, String> map, OnConnectResultListener listener) {
+    public void buildPostString(String url, LinkedHashMap<String, String> map, OnConnectResultListener listener) {
+        buildPostString(url, buildTag("POST"), map, listener);
+    }
+
+    public void buildPostString(String url, Object tag, LinkedHashMap<String, String> map, OnConnectResultListener listener) {
         buildConnectBuilder().build().buildPostString(url, tag, map, listener);
     }
 
     /**
      * post json
      */
-    public void buildPostJson(String url, String tag, Object jsonObj, OnConnectResultListener listener) {
+    public void buildPostJson(String url, Object jsonObj, OnConnectResultListener listener) {
+        buildPostJson(url, buildTag("JSON"), jsonObj, listener);
+    }
+
+    public void buildPostJson(String url, Object tag, Object jsonObj, OnConnectResultListener listener) {
         buildConnectBuilder().build().buildPostJson(url, tag, jsonObj, listener);
     }
 
     /**
      * post file
      */
-    public void buildPostFile(String url, String tag, File file, OnConnectResultListener listener) {
+    public void buildPostFile(String url, File file, OnConnectResultListener listener) {
+        buildPostFile(url, buildTag("FILE"), file, listener);
+    }
+
+    public void buildPostFile(String url, Object tag, File file, OnConnectResultListener listener) {
         buildConnectBuilder().build().buildPostFile(url, tag, file, listener);
     }
 }
