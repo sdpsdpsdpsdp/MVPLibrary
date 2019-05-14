@@ -229,7 +229,7 @@ public class DownloadTask implements Runnable {
     public DownloadTask remove(boolean isDeleteFile) {
         if (progress == null) {
             postOnError(null, new Exception("progress is null!"));
-            return null;
+            return this;
         }
         pause();
         if (isDeleteFile) IOUtils.delFileOrFolder(progress.filePath);
