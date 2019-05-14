@@ -64,7 +64,9 @@ public class DownloadTask implements Runnable {
 
     public DownloadTask folder(String folder) {
         if (folder != null && !TextUtils.isEmpty(folder.trim())) {
-            progress.folder = folder;
+            if (progress != null) {
+                progress.folder = folder;
+            }
         } else {
             OkLogger.w("folder is null, ignored!");
         }
@@ -73,7 +75,9 @@ public class DownloadTask implements Runnable {
 
     public DownloadTask fileName(String fileName) {
         if (fileName != null && !TextUtils.isEmpty(fileName.trim())) {
-            progress.fileName = fileName;
+            if (progress != null) {
+                progress.fileName = fileName;
+            }
         } else {
             OkLogger.w("fileName is null, ignored!");
         }
@@ -81,30 +85,40 @@ public class DownloadTask implements Runnable {
     }
 
     public DownloadTask priority(int priority) {
-        progress.priority = priority;
+        if (progress != null) {
+            progress.priority = priority;
+        }
         return this;
     }
 
     public DownloadTask extra1(Serializable extra1) {
-        progress.extra1 = extra1;
+        if (progress != null) {
+            progress.extra1 = extra1;
+        }
         return this;
     }
 
     public DownloadTask extra2(Serializable extra2) {
-        progress.extra2 = extra2;
+        if (progress != null) {
+            progress.extra2 = extra2;
+        }
         return this;
     }
 
     public DownloadTask extra3(Serializable extra3) {
-        progress.extra3 = extra3;
+        if (progress != null) {
+            progress.extra3 = extra3;
+        }
         return this;
     }
 
     public DownloadTask save() {
-        if (!TextUtils.isEmpty(progress.folder) && !TextUtils.isEmpty(progress.fileName)) {
-            progress.filePath = new File(progress.folder, progress.fileName).getAbsolutePath();
+        if (progress != null) {
+            if (!TextUtils.isEmpty(progress.folder) && !TextUtils.isEmpty(progress.fileName)) {
+                progress.filePath = new File(progress.folder, progress.fileName).getAbsolutePath();
+            }
+            DownloadManager.getInstance().replace(progress);
         }
-        DownloadManager.getInstance().replace(progress);
         return this;
     }
 
@@ -126,6 +140,10 @@ public class DownloadTask implements Runnable {
     }
 
     public void start() {
+        if (progress == null) {
+            postOnError(null, new Exception("progress is null!"));
+            return;
+        }
         if (OkHttpDownload.getInstance().getTask(progress.tag) == null || DownloadManager.getInstance().get(progress.tag) == null) {
             throw new IllegalStateException("you must call DownloadTask#save() before DownloadTask#start()！");
         }
@@ -151,36 +169,47 @@ public class DownloadTask implements Runnable {
     }
 
     public void restart() {
-        pause();
-        IOUtils.delFileOrFolder(progress.filePath);
-        progress.status = Progress.NONE;
-        progress.currentSize = 0;
-        progress.fraction = 0;
-        progress.speed = 0;
-        DownloadManager.getInstance().replace(progress);
-        start();
-    }
-
-    /** 暂停的方法 */
-    public void pause() {
-        executor.remove(priorityRunnable);
-        if (progress.status == Progress.WAITING) {
-            postPause(progress);
-        } else if (progress.status == Progress.LOADING) {
+        if (progress != null) {
+            pause();
+            IOUtils.delFileOrFolder(progress.filePath);
+            progress.status = Progress.NONE;
+            progress.currentSize = 0;
+            progress.fraction = 0;
             progress.speed = 0;
-            progress.status = Progress.PAUSE;
-        } else {
-            OkLogger.w("only the task with status WAITING(1) or LOADING(2) can pause, current status is " + progress.status);
+            DownloadManager.getInstance().replace(progress);
+            start();
         }
     }
 
-    /** 删除一个任务,会删除下载文件 */
+    /**
+     * 暂停的方法
+     */
+    public void pause() {
+        if (progress != null) {
+            executor.remove(priorityRunnable);
+            if (progress.status == Progress.WAITING) {
+                postPause(progress);
+            } else if (progress.status == Progress.LOADING) {
+                progress.speed = 0;
+                progress.status = Progress.PAUSE;
+            } else {
+                OkLogger.w("only the task with status WAITING(1) or LOADING(2) can pause, current status is " + progress.status);
+            }
+        }
+    }
+
+    /**
+     * 删除一个任务,会删除下载文件
+     */
     public void remove() {
         remove(false);
     }
 
-    /** 删除一个任务,会删除下载文件 */
+    /**
+     * 删除一个任务,会删除下载文件
+     */
     public DownloadTask remove(boolean isDeleteFile) {
+        if (progress == null) return null;
         pause();
         if (isDeleteFile) IOUtils.delFileOrFolder(progress.filePath);
         DownloadManager.getInstance().delete(progress.tag);
@@ -191,6 +220,10 @@ public class DownloadTask implements Runnable {
 
     @Override
     public void run() {
+        if (progress == null) {
+            postOnError(null, new Exception("request is null!"));
+            return;
+        }
         //check breakpoint
         long startPosition = progress.currentSize;
         if (startPosition < 0) {
@@ -211,6 +244,10 @@ public class DownloadTask implements Runnable {
         Response response;
         try {
             Request<?, ? extends Request> request = progress.request;
+            if (request == null) {
+                postOnError(progress, new Exception("request is null!"));
+                return;
+            }
             request.headers(HttpHeaders.HEAD_KEY_RANGE, "bytes=" + startPosition + "-");
             response = request.execute();
         } catch (IOException e) {
@@ -305,9 +342,11 @@ public class DownloadTask implements Runnable {
         }
     }
 
-    /** 执行文件下载 */
+    /**
+     * 执行文件下载
+     */
     private void download(InputStream input, RandomAccessFile out, Progress progress) throws IOException {
-        if (input == null || out == null) return;
+        if (input == null || out == null || progress == null) return;
 
         progress.status = Progress.LOADING;
         byte[] buffer = new byte[BUFFER_SIZE];
@@ -332,6 +371,7 @@ public class DownloadTask implements Runnable {
     }
 
     private void postOnStart(final Progress progress) {
+        if (progress == null) return;
         progress.speed = 0;
         progress.status = Progress.NONE;
         updateDatabase(progress);
@@ -346,6 +386,7 @@ public class DownloadTask implements Runnable {
     }
 
     private void postWaiting(final Progress progress) {
+        if (progress == null) return;
         progress.speed = 0;
         progress.status = Progress.WAITING;
         updateDatabase(progress);
@@ -360,6 +401,7 @@ public class DownloadTask implements Runnable {
     }
 
     private void postPause(final Progress progress) {
+        if (progress == null) return;
         progress.speed = 0;
         progress.status = Progress.PAUSE;
         updateDatabase(progress);
@@ -374,6 +416,7 @@ public class DownloadTask implements Runnable {
     }
 
     private void postLoading(final Progress progress) {
+        if (progress == null) return;
         updateDatabase(progress);
         HttpUtils.runOnUiThread(new Runnable() {
             @Override
@@ -385,23 +428,29 @@ public class DownloadTask implements Runnable {
         });
     }
 
-    private void postOnError(final Progress progress, final Throwable throwable) {
+    private void postOnError(Progress progress, final Throwable throwable) {
+        if (throwable == null) return;
+        if (progress == null) {
+            progress = new Progress();
+        }
         progress.speed = 0;
         progress.status = Progress.ERROR;
         progress.exception = throwable;
         updateDatabase(progress);
+        final Progress finalProgress = progress;
         HttpUtils.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 for (DownloadListener listener : listeners.values()) {
-                    listener.onProgress(progress);
-                    listener.onError(progress);
+                    listener.onProgress(finalProgress);
+                    listener.onError(finalProgress);
                 }
             }
         });
     }
 
     private void postOnFinish(final Progress progress, final File file) {
+        if (progress == null || file == null) return;
         progress.speed = 0;
         progress.fraction = 1.0f;
         progress.status = Progress.FINISH;
@@ -418,6 +467,7 @@ public class DownloadTask implements Runnable {
     }
 
     private void postOnRemove(final Progress progress) {
+        if (progress == null) return;
         updateDatabase(progress);
         HttpUtils.runOnUiThread(new Runnable() {
             @Override
@@ -431,6 +481,7 @@ public class DownloadTask implements Runnable {
     }
 
     private void updateDatabase(Progress progress) {
+        if (progress == null) return;
         ContentValues contentValues = Progress.buildUpdateContentValues(progress);
         DownloadManager.getInstance().update(contentValues, progress.tag);
     }
