@@ -4,19 +4,20 @@ import com.laisontech.mvp.net.okconnect.OkHttpUtils;
 import com.laisontech.mvp.net.okconnect.callback.Callback;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * Created by zhy on 15/12/15.
  * 对OkHttpRequest的封装，对外提供更多的接口：cancel(),readTimeOut()...
+ * 2019 7 10 增加了拦截器功能
  */
-public class RequestCall
-{
+public class RequestCall {
     private OkHttpRequest okHttpRequest;
     private Request request;
     private Call call;
@@ -24,98 +25,90 @@ public class RequestCall
     private long readTimeOut;
     private long writeTimeOut;
     private long connTimeOut;
-
+    private List<Interceptor> interceptors;
     private OkHttpClient clone;
 
-    public RequestCall(OkHttpRequest request)
-    {
+    public RequestCall(OkHttpRequest request) {
         this.okHttpRequest = request;
     }
 
-    public RequestCall readTimeOut(long readTimeOut)
-    {
+    public RequestCall readTimeOut(long readTimeOut) {
         this.readTimeOut = readTimeOut;
         return this;
     }
 
-    public RequestCall writeTimeOut(long writeTimeOut)
-    {
+    public RequestCall writeTimeOut(long writeTimeOut) {
         this.writeTimeOut = writeTimeOut;
         return this;
     }
 
-    public RequestCall connTimeOut(long connTimeOut)
-    {
+    public RequestCall connTimeOut(long connTimeOut) {
         this.connTimeOut = connTimeOut;
         return this;
     }
 
-    public Call buildCall(Callback callback)
-    {
+    public RequestCall interceptors(List<Interceptor> interceptors) {
+        this.interceptors = interceptors;
+        return this;
+    }
+
+    public Call buildCall(Callback callback) {
         request = generateRequest(callback);
 
-        if (readTimeOut > 0 || writeTimeOut > 0 || connTimeOut > 0)
-        {
+        if (readTimeOut > 0 || writeTimeOut > 0 || connTimeOut > 0) {
             readTimeOut = readTimeOut > 0 ? readTimeOut : OkHttpUtils.DEFAULT_MILLISECONDS;
             writeTimeOut = writeTimeOut > 0 ? writeTimeOut : OkHttpUtils.DEFAULT_MILLISECONDS;
             connTimeOut = connTimeOut > 0 ? connTimeOut : OkHttpUtils.DEFAULT_MILLISECONDS;
-
-            clone = OkHttpUtils.getInstance().getOkHttpClient().newBuilder()
+            OkHttpClient.Builder builder = OkHttpUtils.getInstance().getOkHttpClient().newBuilder()
                     .readTimeout(readTimeOut, TimeUnit.MILLISECONDS)
                     .writeTimeout(writeTimeOut, TimeUnit.MILLISECONDS)
-                    .connectTimeout(connTimeOut, TimeUnit.MILLISECONDS)
-                    .build();
-
+                    .connectTimeout(connTimeOut, TimeUnit.MILLISECONDS);
+            if (interceptors != null && interceptors.size() > 0) {
+                for (Interceptor interceptor : interceptors) {
+                    builder.addInterceptor(interceptor);
+                }
+            }
+            clone = builder.build();
             call = clone.newCall(request);
-        } else
-        {
+        } else {
             call = OkHttpUtils.getInstance().getOkHttpClient().newCall(request);
         }
         return call;
     }
 
-    private Request generateRequest(Callback callback)
-    {
+    private Request generateRequest(Callback callback) {
         return okHttpRequest.generateRequest(callback);
     }
 
-    public void execute(Callback callback)
-    {
+    public void execute(Callback callback) {
         buildCall(callback);
 
-        if (callback != null)
-        {
+        if (callback != null) {
             callback.onBefore(request, getOkHttpRequest().getId());
         }
 
         OkHttpUtils.getInstance().execute(this, callback);
     }
 
-    public Call getCall()
-    {
+    public Call getCall() {
         return call;
     }
 
-    public Request getRequest()
-    {
+    public Request getRequest() {
         return request;
     }
 
-    public OkHttpRequest getOkHttpRequest()
-    {
+    public OkHttpRequest getOkHttpRequest() {
         return okHttpRequest;
     }
 
-    public Response execute() throws IOException
-    {
+    public Response execute() throws IOException {
         buildCall(null);
         return call.execute();
     }
 
-    public void cancel()
-    {
-        if (call != null)
-        {
+    public void cancel() {
+        if (call != null) {
             call.cancel();
         }
     }

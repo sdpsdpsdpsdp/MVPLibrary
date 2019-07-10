@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">MVP</string>
     <string name="exit">再按一次退出！</string>
     <string name="notifyTitle">提示</string>
     <string name="notifyMsg">App需要以下权限，请点击"设置"按钮进行添加权限！</string>

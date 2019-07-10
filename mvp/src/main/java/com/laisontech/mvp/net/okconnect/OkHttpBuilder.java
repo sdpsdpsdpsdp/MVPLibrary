@@ -1,6 +1,7 @@
 package com.laisontech.mvp.net.okconnect;
 
 
+import android.os.Build;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -10,8 +11,10 @@ import com.laisontech.mvp.net.okconnect.callback.ResultWithTagCallback;
 
 import java.io.File;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import okhttp3.Call;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
 
@@ -25,15 +28,18 @@ class OkHttpBuilder {
     private int connectDuration;//链接时间
     private int readDuration;//读取时间
     private int writeDuration;//写入时间
+    private List<Interceptor> interceptors;//拦截器
     private int maxConnectTimes;//重连次数
     //当前连接次数
     private int mCurrentRetryTime = 1;
 
+    //连接器；
     public static class Builder {
         private int connectDuration;
         private int readDuration;
         private int writeDuration;
         private int maxRetryTimes;
+        private List<Interceptor> interceptors;
 
         public Builder connectDuration(int connectDuration) {
             this.connectDuration = connectDuration;
@@ -55,15 +61,22 @@ class OkHttpBuilder {
             return this;
         }
 
+        public Builder addInterceptor(List<Interceptor> interceptors) {
+            this.interceptors = interceptors;
+            return this;
+        }
+
         public OkHttpBuilder build() {
             return new OkHttpBuilder(this);
         }
+
     }
 
     public OkHttpBuilder(Builder builder) {
         this.connectDuration = builder.connectDuration;
         this.readDuration = builder.readDuration;
         this.writeDuration = builder.writeDuration;
+        this.interceptors = builder.interceptors;
         this.maxConnectTimes = builder.maxRetryTimes;
     }
 
@@ -85,6 +98,7 @@ class OkHttpBuilder {
                 .readTimeOut(readDuration)
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
+                .interceptors(interceptors)
                 .execute(new UserWithTagCallback(retryListener));
     }
 
@@ -106,6 +120,7 @@ class OkHttpBuilder {
                 .readTimeOut(readDuration)
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
+                .interceptors(interceptors)
                 .execute(new UserWithTagCallback(listener));
     }
 
@@ -128,6 +143,7 @@ class OkHttpBuilder {
                 .readTimeOut(readDuration)
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
+                .interceptors(interceptors)
                 .execute(new UserWithTagCallback(listener));
     }
 
@@ -150,6 +166,7 @@ class OkHttpBuilder {
                 .readTimeOut(readDuration)
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
+                .interceptors(interceptors)
                 .execute(new UserWithTagCallback(listener));
     }
 

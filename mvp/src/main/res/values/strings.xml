@@ -1,10 +1,9 @@
 <resources>
-    <string name="app_name">MVP</string>
     <string name="exit">Please press again to exit!</string>
     <string name="notifyTitle">Reminder</string>
     <string name="notifyMsg">The current application is missing the necessary permissions. Please click "Settings" to open the required permissions.</string>
     <string name="cancel">Cancel</string>
     <string name="Setting">Settings</string>
-    <string name="GetDataFormatError">Data format error</string>
+    <string name="GetDataFormatError">Json format is incorrect!</string>
     <string name="Success">Success</string>
 </resources>
