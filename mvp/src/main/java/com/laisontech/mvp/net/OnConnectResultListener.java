@@ -8,7 +8,7 @@ import okhttp3.Response;
  */
 
 public interface OnConnectResultListener {
-    void onResponse(Response response);
+    void onResponse(Response response, Object tag);
 
-    void onError(Call call, Exception e, Object tag);
+    void onError(Exception e, Object tag);
 }

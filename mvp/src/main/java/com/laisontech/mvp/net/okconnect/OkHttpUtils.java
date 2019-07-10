@@ -1,5 +1,6 @@
 package com.laisontech.mvp.net.okconnect;
 
+import com.laisontech.mvp.net.NetConst;
 import com.laisontech.mvp.net.okconnect.builder.GetBuilder;
 import com.laisontech.mvp.net.okconnect.builder.HeadBuilder;
 import com.laisontech.mvp.net.okconnect.builder.OtherRequestBuilder;
@@ -109,7 +110,7 @@ public class OkHttpUtils {
             public void onResponse(final Call call, final Response response) {
                 try {
                     if (call.isCanceled()) {
-                        sendFailResultCallback(call, new IOException("Canceled!"), finalCallback, id);
+                        sendFailResultCallback(call, new IOException(NetConst.REQUEST_CANCEL), finalCallback, id);
                         return;
                     }
 

@@ -12,10 +12,10 @@ import okhttp3.ResponseBody;
  * on 2019/3/29
  * Des：携带Tag的Callback
  */
-public abstract class ResultWithResponseCallback extends Callback<Response> {
+public abstract class ResultWithResponseCallback extends Callback<ResultWithResponse> {
     @Override
-    public Response parseNetworkResponse(Response response, int id) throws IOException {
+    public ResultWithResponse parseNetworkResponse(Response response, int id) throws IOException {
         if (response == null) return null;
-        return response;
+        return new ResultWithResponse(response, response.request().tag());
     }
 }

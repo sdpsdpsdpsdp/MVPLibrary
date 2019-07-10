@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.laisontech.mvp.net.OnConnectResultListener;
+import com.laisontech.mvp.net.okconnect.callback.ResultWithResponse;
 import com.laisontech.mvp.net.okconnect.callback.ResultWithResponseCallback;
 
 import java.io.File;
@@ -183,8 +184,8 @@ class OkHttpBuilder {
         }
 
         @Override
-        public void onResponse(Response response, int id) {
-            executeResponse(response);
+        public void onResponse(ResultWithResponse response, int id) {
+            executeResponse(response.getResponse(), response.getTag());
         }
     }
 
@@ -200,7 +201,7 @@ class OkHttpBuilder {
         }
         if (mCurrentRetryTime >= maxConnectTimes) {
             setDefault();
-            mConnectListener.onError(call, e, tag);//失败了三次才会发送失败的原因
+            mConnectListener.onError(e, tag);//失败了三次才会发送失败的原因
             return;
         }
         if (retryListener != null) {
@@ -209,10 +210,10 @@ class OkHttpBuilder {
         mCurrentRetryTime++;
     }
 
-    private void executeResponse(Response response) {
+    private void executeResponse(Response response, Object tag) {
         setDefault();
         if (mConnectListener != null) {
-            mConnectListener.onResponse(response);
+            mConnectListener.onResponse(response, tag);
         }
     }
 
