@@ -51,7 +51,7 @@ public class OkHttpConnect {
     /**
      * log拦截器获取请求过程
      */
-    public class LogInterceptor implements Interceptor {
+    public static class LogInterceptor implements Interceptor {
         private static final String LOG = "OkHttpLogger";
         private boolean debug;
 
