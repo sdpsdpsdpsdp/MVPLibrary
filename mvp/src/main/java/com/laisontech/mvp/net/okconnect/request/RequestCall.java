@@ -65,7 +65,7 @@ public class RequestCall {
                     .connectTimeout(connTimeOut, TimeUnit.MILLISECONDS);
             if (interceptors != null && interceptors.size() > 0) {
                 for (Interceptor interceptor : interceptors) {
-                    builder.addInterceptor(interceptor);
+                    builder.addNetworkInterceptor(interceptor);
                 }
             }
             clone = builder.build();
