@@ -185,7 +185,7 @@ class OkHttpBuilder {
 
         @Override
         public void onResponse(ResultWithResponse response, int id) {
-            executeResponse(response.getResponse(), response.getTag());
+            executeResponse(response);
         }
     }
 
@@ -210,10 +210,10 @@ class OkHttpBuilder {
         mCurrentRetryTime++;
     }
 
-    private void executeResponse(Response response, Object tag) {
+    private void executeResponse(ResultWithResponse response) {
         setDefault();
         if (mConnectListener != null) {
-            mConnectListener.onResponse(response, tag);
+            mConnectListener.onResponse(response);
         }
     }
 
