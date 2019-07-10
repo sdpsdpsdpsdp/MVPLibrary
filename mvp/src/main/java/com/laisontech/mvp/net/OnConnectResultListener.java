@@ -6,8 +6,12 @@ import okhttp3.Call;
  * Created by SDP on 2018/4/13.
  */
 
-public interface OnConnectResultListener {
-    void onResponse(String response, Object tag);
+public abstract class OnConnectResultListener {
+    public abstract void onResponse(String response, Object tag);
 
-    void onError(Call call, Exception e, Object tag);
+    public void onError(String errorMsg, Object tag) {
+    }
+
+    public void onError(Call call, Exception e, Object tag) {
+    }
 }

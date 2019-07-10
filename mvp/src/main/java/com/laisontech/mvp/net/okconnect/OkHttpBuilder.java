@@ -201,6 +201,7 @@ class OkHttpBuilder {
         }
         if (mCurrentRetryTime >= maxConnectTimes) {
             setDefault();
+            mConnectListener.onError(getNetErrorMsg(e), tag);
             mConnectListener.onError(call, e, tag);//失败了三次才会发送失败的原因
             return;
         }
