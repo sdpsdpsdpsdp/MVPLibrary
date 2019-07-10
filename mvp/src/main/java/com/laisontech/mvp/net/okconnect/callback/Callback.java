@@ -42,12 +42,10 @@ public abstract class Callback<T> {
 
     /**
      * Thread Pool Thread
-     *
-     * @param response
      */
     public abstract T parseNetworkResponse(Response response, int id) throws Exception;
 
-    public abstract void onError(Call call, Exception e, int id);
+    public abstract void onError(Call call, Exception e,  int id);
 
     public abstract void onResponse(T response, int id);
 

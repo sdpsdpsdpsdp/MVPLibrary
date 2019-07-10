@@ -1,17 +1,13 @@
 package com.laisontech.mvp.net;
 
-import okhttp3.Call;
+import com.laisontech.mvp.net.okconnect.callback.ResultWithResponse;
 
 /**
  * Created by SDP on 2018/4/13.
  */
 
-public abstract class OnConnectResultListener {
-    public abstract void onResponse(String response, Object tag);
+public interface OnConnectResultListener {
+    void onResponse(ResultWithResponse response);
 
-    public void onError(String errorMsg, Object tag) {
-    }
-
-    public void onError(Call call, Exception e, Object tag) {
-    }
+    void onError(Exception e, Object tag);
 }
