@@ -1,17 +1,14 @@
 package com.laisontech.mvp.net;
 
 import okhttp3.Call;
+import okhttp3.Response;
 
 /**
  * Created by SDP on 2018/4/13.
  */
 
-public abstract class OnConnectResultListener {
-    public abstract void onResponse(String response, Object tag);
+public interface OnConnectResultListener {
+    void onResponse(Response response);
 
-    public void onError(String errorMsg, Object tag) {
-    }
-
-    public void onError(Call call, Exception e, Object tag) {
-    }
+    void onError(Call call, Exception e, Object tag);
 }

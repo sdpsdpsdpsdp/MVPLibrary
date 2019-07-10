@@ -1,13 +1,11 @@
 package com.laisontech.mvp.net.okconnect;
 
 
-import android.os.Build;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.laisontech.mvp.net.OnConnectResultListener;
-import com.laisontech.mvp.net.okconnect.callback.ResultWithTag;
-import com.laisontech.mvp.net.okconnect.callback.ResultWithTagCallback;
+import com.laisontech.mvp.net.okconnect.callback.ResultWithResponseCallback;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -17,6 +15,7 @@ import okhttp3.Call;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Created by SDP on 2018/4/13.
@@ -99,7 +98,7 @@ class OkHttpBuilder {
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
                 .interceptors(interceptors)
-                .execute(new UserWithTagCallback(retryListener));
+                .execute(new UserWithResponseCallback(retryListener));
     }
 
     /**
@@ -121,7 +120,7 @@ class OkHttpBuilder {
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
                 .interceptors(interceptors)
-                .execute(new UserWithTagCallback(listener));
+                .execute(new UserWithResponseCallback(listener));
     }
 
     /**
@@ -144,7 +143,7 @@ class OkHttpBuilder {
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
                 .interceptors(interceptors)
-                .execute(new UserWithTagCallback(listener));
+                .execute(new UserWithResponseCallback(listener));
     }
 
     /**
@@ -167,14 +166,14 @@ class OkHttpBuilder {
                 .writeTimeOut(writeDuration)
                 .connTimeOut(connectDuration)
                 .interceptors(interceptors)
-                .execute(new UserWithTagCallback(listener));
+                .execute(new UserWithResponseCallback(listener));
     }
 
     //连接请求包含tag
-    private class UserWithTagCallback extends ResultWithTagCallback {
+    private class UserWithResponseCallback extends ResultWithResponseCallback {
         private OnRetryListener retryListener;
 
-        UserWithTagCallback(OnRetryListener retryListener) {
+        UserWithResponseCallback(OnRetryListener retryListener) {
             this.retryListener = retryListener;
         }
 
@@ -184,7 +183,7 @@ class OkHttpBuilder {
         }
 
         @Override
-        public void onResponse(ResultWithTag response, int id) {
+        public void onResponse(Response response, int id) {
             executeResponse(response);
         }
     }
@@ -201,7 +200,6 @@ class OkHttpBuilder {
         }
         if (mCurrentRetryTime >= maxConnectTimes) {
             setDefault();
-            mConnectListener.onError(getNetErrorMsg(e), tag);
             mConnectListener.onError(call, e, tag);//失败了三次才会发送失败的原因
             return;
         }
@@ -211,16 +209,11 @@ class OkHttpBuilder {
         mCurrentRetryTime++;
     }
 
-    private void executeResponse(ResultWithTag response) {
-        if (mConnectListener == null) return;
+    private void executeResponse(Response response) {
         setDefault();
-        String result = "";
-        Object obj = null;
-        if (response != null) {
-            result = response.getResult();
-            obj = response.getTag();
+        if (mConnectListener != null) {
+            mConnectListener.onResponse(response);
         }
-        mConnectListener.onResponse(result, obj);
     }
 
     //网络请求错误提示
